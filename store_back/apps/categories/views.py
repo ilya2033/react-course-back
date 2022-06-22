@@ -3,6 +3,7 @@ from django.views.decorators.csrf import csrf_exempt
 from rest_framework.parsers import JSONParser
 from .models import Category
 from .serializers import CategorySerializer
+from goods.serializers import GoodSerializer
 import json
 from rest_framework.decorators import api_view, permission_classes,authentication_classes
 from rest_framework.permissions import IsAdminUser,IsAdminUser
@@ -73,9 +74,20 @@ def category_upsert(request):
         goods = json.loads(request.POST.get("goods","[]"))
     except:
         return JsonResponse({"errors":[{"message":"Не вірні дані"}]}, safe=False)
+
+
     if _id :
+
         try:
             category = Category.objects.get(_id = _id)
+            default_goods =json.dumps(list( GoodSerializer(category.goods.all(),many=True).data))
+            default_categories = json.dumps(list(CategorySerializer(category.subcategories.all(),many=True).data))
+            name = request.POST.get("name", category.name)
+            subcategories =  json.loads(request.POST.get("subcategories",default_categories ))
+            parent = request.POST.get("parent", category.parent)
+            goods = json.loads(request.POST.get("goods", default_goods))
+
+
         except Exception as e:
             return JsonResponse({"errors":[{"message":"Не вірні дані"}]}, safe=False)
 
@@ -85,8 +97,14 @@ def category_upsert(request):
         category = Category.objects.create(name=name)
 
     if parent:
-        print(parent)
-        category.parent = Category.objects.get(_id=json.loads(parent)["_id"])
+        if  type(parent) is str:
+            if parent == "null":
+                category.parent = None
+            else:
+                category.parent = Category.objects.get(_id=json.loads(parent)["_id"])
+        else:
+            category.parent = Category.objects.get(_id=parent._id)
+
 
     category.goods.clear()
     for good in goods:
