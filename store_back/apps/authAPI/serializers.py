@@ -1,5 +1,7 @@
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-import datetime
+from datetime import datetime
+
+
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
 
     @classmethod
@@ -7,7 +9,7 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         token = super().get_token(user)
 
         # Add custom claims
-        token['iat'] = datetime.datetime.now()
+        token['iat'] = str(datetime.timestamp(datetime.now()))
         token["sub"] = {
             "acl":["anon"],
         }

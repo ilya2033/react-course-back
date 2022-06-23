@@ -13,10 +13,10 @@ class Image(models.Model):
 
 class Good(models.Model):
     _id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    name = models.CharField('name', max_length = 200)
-    description = models.CharField('description', max_length = 1000)
-    price = models.IntegerField("price", default=0)
-    amount = models.IntegerField("amount", default=0)
+    name = models.CharField('name',default="", max_length = 200,blank=True)
+    description = models.CharField('description',default="", max_length = 1000,blank=True)
+    price = models.IntegerField("price", default=0,blank=True)
+    amount = models.IntegerField("amount", default=0,blank=True)
     images = models.ManyToManyField(Image,related_name ="goods", blank = True)
     date = models.DateTimeField(default=timezone.now)
 
