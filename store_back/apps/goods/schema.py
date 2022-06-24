@@ -5,8 +5,11 @@ from .models import Good,Image
 import json
 from functools import reduce
 from .serializers import GoodSerializer
+from django.forms.models import model_to_dict
+
 import operator
 from django.db.models import Q
+
 
 
 class ImageType(DjangoObjectType):
@@ -30,6 +33,7 @@ class GoodType(DjangoObjectType):
     description = graphene.String()
     price = graphene.Int()
     amount = graphene.Int()
+    categories = graphene.List('categories.schema.CategoryType')
 
     class Meta:
         model = Good
@@ -40,6 +44,9 @@ class GoodType(DjangoObjectType):
 
     def resolve_images(self,info):
         return self.images.all()
+
+    def resolve_categories(self,info):
+        return self.categories.all()
 
     def resolve_name(self,info):
         return self.name
@@ -61,6 +68,7 @@ class GoodInput(graphene.InputObjectType):
     description = graphene.String()
     price = graphene.Int()
     amount = graphene.Int()
+    categories = graphene.List('categories.schema.CategoryInput')
 
 
 
@@ -80,8 +88,8 @@ class Query(graphene.ObjectType):
         if len(query_list) > 1:
             additional_params = query_list[1]
 
-        skip = additional_params.get("skip",0)
-        limit = additional_params.get("limit",20)
+        skip = int(additional_params.get("skip",0))
+        limit = int(additional_params.get("limit",20))
         order_by = additional_params.get("orderBy","_id")
 
         query_set = Good.objects.all()
@@ -90,7 +98,7 @@ class Query(graphene.ObjectType):
         if len(filter_params):
             query_set = query_set.filter(reduce(operator.and_,(Q(**d) for d in [dict([i]) for i in filter_params.items()])))
 
-
+        query_set = query_set.order_by(order_by)[skip:skip+limit]
         return query_set
 
 
@@ -164,23 +172,32 @@ class GoodUpsert(graphene.Mutation):
 
     @staticmethod
     def mutate(root,info,good):
+        new_good={}
+        image_list = []
         # user = info.context.user
         # if not user.is_superuser:
         #     raise Exception("Authentication credentials were not provided")
+        if "images" in good:
+            image_list = [f['_id'] for f in good["images"]]
+            good.pop("images",None)
 
 
-        new_good={}
+
         try:
             _id = good._id
             new_good = Good.objects.get(_id = _id)
             good.pop("_id",None)
             new_good.__dict__.update(**good)
-            new_good.save()
         except Exception as e:
             new_good = Good(**good)
-            new_good.save()
-            print(GoodSerializer(new_good).data)
-        return GoodType(**GoodSerializer(new_good).data)
+
+        new_good.save()
+        if len(image_list):
+            new_good.images.set(image_list)
+
+        good_data = model_to_dict(new_good)
+        good_data["_id"] = new_good._id
+        return GoodType(**good_data)
 
 
 

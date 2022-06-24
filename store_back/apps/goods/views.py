@@ -45,6 +45,7 @@ def good_detail(request,_id):
 
     if good:
         serializer = GoodSerializer(good)
+
         return JsonResponse({"data":serializer.data}, safe=False)
     else:
         return JsonResponse({"data":{}}, safe=False)

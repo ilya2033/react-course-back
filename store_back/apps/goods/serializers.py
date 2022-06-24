@@ -11,7 +11,7 @@ class SubCategorySerializer(serializers.ModelSerializer):
 
 
 class ImageSerializer(serializers.ModelSerializer):
-    
+
     class Meta:
         model =  Image
         fields = ['_id','url']
@@ -24,5 +24,6 @@ class GoodSerializer(serializers.ModelSerializer):
     class Meta:
         model =  Good
         fields = ['_id',"name","price","amount","description","images","categories"]
+        depth = 1
 
 
