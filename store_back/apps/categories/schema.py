@@ -12,15 +12,11 @@ from django.forms.models import model_to_dict
 
 
 
-class CategoryType(DjangoObjectType):
+class CategoryType(graphene.ObjectType):
     _id = graphene.String(name='_id')
     name = graphene.String()
     parent = graphene.Field(lambda: CategoryType)
     goods = graphene.List(good_schema.GoodType)
-
-    class Meta:
-        model = Category
-        exclude_fields = ('_id',"name","parent","goods")
 
     def resolve__id(self,info):
         return self._id
@@ -104,6 +100,11 @@ class CategoryUpsert(graphene.Mutation):
         new_category={}
         good_list = []
 
+        user = info.context.user
+        if not user.is_superuser:
+            raise Exception("Authentication credentials were not provided")
+
+
         if "goods" in category:
             good_list = [f['_id'] for f in category["goods"]]
             category.pop("goods",None)
@@ -122,7 +123,6 @@ class CategoryUpsert(graphene.Mutation):
             new_category.goods.set(good_list)
         category_data = model_to_dict(new_category)
         category_data["_id"] = new_category._id
-        print(category_data)
         return CategoryType(**category_data)
 
 
@@ -137,15 +137,17 @@ class CategoryDelete(graphene.Mutation):
 
     @staticmethod
     def mutate(root,info,category):
-        # user = info.context.user
-        # if not user.is_superuser:
-        #     raise Exception("Authentication credentials were not provided")
+        user = info.context.user
+        if not user.is_superuser:
+            raise Exception("Authentication credentials were not provided")
+
 
 
         try:
             _id = category._id
             category_to_delete = Category.objects.get(_id=_id)
-            category_data = CategorySerializer(category_to_delete).data
+            category_data = model_to_dict(category_to_delete)
+            category_data["_id"] = new_category._id
             category_to_delete.delete()
 
         except:

@@ -7,6 +7,7 @@ from functools import reduce
 from .serializers import GoodSerializer
 from django.forms.models import model_to_dict
 
+
 import operator
 from django.db.models import Q
 
@@ -26,7 +27,7 @@ class ImageInput(graphene.InputObjectType):
     url = graphene.String(name='url',required=True)
 
 
-class GoodType(DjangoObjectType):
+class GoodType(graphene.ObjectType):
     _id = graphene.String(name='_id')
     images = graphene.List(ImageType)
     name = graphene.String()
@@ -34,10 +35,9 @@ class GoodType(DjangoObjectType):
     price = graphene.Int()
     amount = graphene.Int()
     categories = graphene.List('categories.schema.CategoryType')
+    createdAt = graphene.String()
 
-    class Meta:
-        model = Good
-        exclude_fields = ('_id',"name","description","price","amount",)
+
 
     def resolve__id(self,info):
         return self._id
@@ -60,6 +60,8 @@ class GoodType(DjangoObjectType):
     def resolve_amount(self,info):
         return self.amount
 
+    def resolve_createdAt(self,info):
+        return self.createdAt.strftime('%s')
 
 class GoodInput(graphene.InputObjectType):
     _id = graphene.String(name='_id')
@@ -174,9 +176,11 @@ class GoodUpsert(graphene.Mutation):
     def mutate(root,info,good):
         new_good={}
         image_list = []
-        # user = info.context.user
-        # if not user.is_superuser:
-        #     raise Exception("Authentication credentials were not provided")
+
+        user = info.context.user
+        if not user.is_superuser:
+            raise Exception("Authentication credentials were not provided")
+
         if "images" in good:
             image_list = [f['_id'] for f in good["images"]]
             good.pop("images",None)
@@ -211,15 +215,16 @@ class GoodDelete(graphene.Mutation):
 
     @staticmethod
     def mutate(root,info,good):
-        # user = info.context.user
-        # if not user.is_superuser:
-        #     raise Exception("Authentication credentials were not provided")
+        user = info.context.user
+        if not user.is_superuser:
+            raise Exception("Authentication credentials were not provided")
 
 
         try:
             _id = good._id
             good_to_delete = Good.objects.get(_id=_id)
-            good_data = GoodSerializer(good_to_delete).data
+            good_data = model_to_dict(good_to_delete)
+            good_data["_id"] = new_good._id
             good_to_delete.delete()
         except:
             raise Exception("Не вірні дані")
