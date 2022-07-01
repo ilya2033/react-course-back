@@ -12,8 +12,7 @@ import graphql_jwt
 
 
 class Mutation(good_mutations,category_mutations,order_mutations,auth_mutations):
-    token_auth = graphql_jwt.ObtainJSONWebToken.Field()
-    verify_token = graphql_jwt.Verify.Field()
+    pass
 
 
 class Query(good_query,category_query,order_query,auth_query):

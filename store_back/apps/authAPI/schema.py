@@ -10,6 +10,8 @@ from django.contrib.auth import get_user_model
 import operator
 from django.db.models import Q
 
+import graphene
+import graphql_jwt
 
 User = get_user_model()
 
@@ -190,6 +192,10 @@ class UserUpsert(graphene.Mutation):
 
 
 class Mutations(graphene.ObjectType):
+    token_auth = graphql_jwt.ObtainJSONWebToken.Field()
+    verify_token = graphql_jwt.Verify.Field()
+    refresh_token = graphql_jwt.Refresh.Field()
+
 
     UserUpsert =  UserUpsert.Field()
     # GoodDelete = GoodDelete.Field()
