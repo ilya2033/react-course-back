@@ -37,7 +37,19 @@ else:
 
 
 # Application definition
+CORS_ALLOWED_ORIGINS = [
+    "http://188.72.209.29",
+    "http://188.72.209.29:80",
+    "http://188.72.209.29:8000",
+    "http://localhost:8000",
+    "http://127.0.0.1:3000",
+]
 
+CORS_ALLOW_METHODS = [
+    "GET",
+    "POST",
+    "PUT",
+]
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
