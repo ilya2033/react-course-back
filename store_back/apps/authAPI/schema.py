@@ -27,6 +27,7 @@ class UserType(graphene.ObjectType):
 
 
 
+
     def resolve__id(self,info):
         return self._id
 
@@ -43,9 +44,7 @@ class UserType(graphene.ObjectType):
         return self.username
 
     def resolve_acl(self,info):
-        print(self._id)
         user = User.objects.get(_id = self._id)
-        print(user)
         acl = ["anon"]
         if user._id:
             acl.append(str(user._id))
@@ -53,12 +52,12 @@ class UserType(graphene.ObjectType):
             if  user.is_superuser:
                 acl.append("admin")
 
-        print(acl)
         return acl
 
 
     def resolve_createdAt(self,info):
         return self.createdAt.strftime('%s')
+
 
 
 class UserInput(graphene.InputObjectType):
@@ -68,6 +67,7 @@ class UserInput(graphene.InputObjectType):
     nick = graphene.String()
     acl = graphene.List(graphene.String)
     username = graphene.String()
+    password = graphene.String()
 
 
 
@@ -95,7 +95,7 @@ class Query(graphene.ObjectType):
 
 
         if len(filter_params):
-            query_set = query_set.filter(reduce(operator.and_,(Q(**d) for d in [dict([i]) for i in filter_params.items()])))
+            query_set = query_set.filter(reduce(operator.or_,(Q(**d) for d in [dict([i]) for i in filter_params.items()])))
 
         query_set = query_set.order_by(order_by)[skip:skip+limit]
         return query_set
@@ -146,9 +146,10 @@ class UserUpsert(graphene.Mutation):
                 raise Exception("Username вже зайнятий")
             except:
                 pass
-            new_user = User(**user)
+            new_user = User.objects.create_user(username = user.username,password=user.password)
 
         new_user.save()
+
         user_data =  {key: new_user.__dict__[key] for key in  new_user.__dict__.keys() & {"username","_id","name","avatar","nick"}}
         user_data["_id"] = new_user._id
 

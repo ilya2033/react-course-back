@@ -17,7 +17,7 @@ class Order(models.Model):
 
 class OrderGood(models.Model):
     _id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    good = models.ForeignKey(Good, on_delete=models.CASCADE)
+    good = models.ForeignKey(Good, on_delete=models.CASCADE,related_name="orderGoods")
     price = models.IntegerField("price", default=1)
     count = models.IntegerField("count", default=1)
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name="orderGoods",blank=True,null=True)

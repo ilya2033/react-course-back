@@ -123,9 +123,6 @@ def good_upsert(request):
 
 
 @csrf_exempt
-@api_view(['POST'])
-@authentication_classes([JWTAuthentication])
-@permission_classes((IsAdminUser, ))
 def image_upsert(request):
         file = request.FILES.get("photo" , None)
         if file:

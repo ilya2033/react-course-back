@@ -6,25 +6,27 @@ import json
 from functools import reduce
 from .serializers import GoodSerializer
 from django.forms.models import model_to_dict
-
+from django.db.models import Count
 
 import operator
 from django.db.models import Q
 
 
 
-class ImageType(DjangoObjectType):
+class ImageType(graphene.ObjectType):
     _id = graphene.String(name='_id')
-    class Meta:
-        model = Image
-        exclude_fields = ('_id',)
+    url = graphene.String()
 
     def resolve__id(self,info):
         return self._id
 
+    def resolve_url(self,info):
+        return self.url
+
+
 class ImageInput(graphene.InputObjectType):
     _id = graphene.String(name='_id')
-    url = graphene.String(name='url',required=True)
+    url = graphene.String(name='url')
 
 
 class GoodType(graphene.ObjectType):
@@ -43,7 +45,7 @@ class GoodType(graphene.ObjectType):
         return self._id
 
     def resolve_images(self,info):
-        return self.images.all()
+        return self.images.all().order_by("goodimage__order")
 
     def resolve_categories(self,info):
         return self.categories.all()
@@ -98,9 +100,13 @@ class Query(graphene.ObjectType):
 
 
         if len(filter_params):
-            query_set = query_set.filter(reduce(operator.and_,(Q(**d) for d in [dict([i]) for i in filter_params.items()])))
+            query_set = query_set.filter(reduce(operator.or_,(Q(**d) for d in [dict([i]) for i in filter_params.items()])))
 
-        query_set = query_set.order_by(order_by)[skip:skip+limit]
+        if order_by == 'popular':
+            query_set = query_set.annotate(order_count=Count('orderGoods')).order_by("order_count")[skip:skip+limit]
+        else:
+            query_set = query_set.order_by(order_by)[skip:skip+limit]
+
         return query_set
 
 
@@ -118,7 +124,7 @@ class Query(graphene.ObjectType):
         query_set = Good.objects.all()
 
         if len(filter_params):
-            query_set = query_set.filter(reduce(operator.and_,(Q(**d) for d in [dict([i]) for i in filter_params.items()])))
+            query_set = query_set.filter(reduce(operator.or_,(Q(**d) for d in [dict([i]) for i in filter_params.items()])))
 
         return query_set.first()
 
@@ -158,8 +164,10 @@ class Query(graphene.ObjectType):
         query_set = Image.objects.all()
 
         if len(filter_params):
-            query_set = query_set.filter(reduce(operator.and_,(Q(**d) for d in [dict([i]) for i in filter_params.items()])))
-
+            try:
+                query_set = query_set.filter(reduce(operator.and_,(Q(**d) for d in [dict([i]) for i in filter_params.items()])))
+            except:
+                raise Exception("Не вірні дані")
         return query_set.first()
 
 
@@ -175,17 +183,28 @@ class GoodUpsert(graphene.Mutation):
     @staticmethod
     def mutate(root,info,good):
         new_good={}
-        image_list = []
+        image_list = None
+        category_list = None
 
         user = info.context.user
         if not user.is_superuser:
             raise Exception("Authentication credentials were not provided")
 
         if "images" in good:
-            image_list = [f['_id'] for f in good["images"]]
+            image_list = [f["_id"] for f in good["images"]]
+        #     image_list = []
+        #     for idx, image in enumerate(good["images"]):
+        #         image["order"] = idx+1
+        #         image_list.append(image)
+
+
+
             good.pop("images",None)
 
 
+        if "categories" in good:
+            category_list = [f['_id'] for f in good["categories"]]
+            good.pop("categories",None)
 
         try:
             _id = good._id
@@ -196,9 +215,19 @@ class GoodUpsert(graphene.Mutation):
             new_good = Good(**good)
 
         new_good.save()
-        if len(image_list):
-            new_good.images.set(image_list)
 
+        if image_list != None:
+            new_good.images.set(image_list)
+            
+            for idx,image in enumerate(image_list):
+                instance = new_good.GoodImages.get(image = image)
+                instance.order = idx+1
+                instance.save()
+        
+        if category_list != None:
+            new_good.categories.set(category_list)    
+
+        new_good.save()
         good_data = model_to_dict(new_good)
         good_data["_id"] = new_good._id
         return GoodType(**good_data)
@@ -216,6 +245,7 @@ class GoodDelete(graphene.Mutation):
     @staticmethod
     def mutate(root,info,good):
         user = info.context.user
+
         if not user.is_superuser:
             raise Exception("Authentication credentials were not provided")
 
@@ -224,7 +254,7 @@ class GoodDelete(graphene.Mutation):
             _id = good._id
             good_to_delete = Good.objects.get(_id=_id)
             good_data = model_to_dict(good_to_delete)
-            good_data["_id"] = new_good._id
+            good_data["_id"] = good_to_delete ._id
             good_to_delete.delete()
         except:
             raise Exception("Не вірні дані")

@@ -23,5 +23,8 @@ class Good(models.Model):
 
 class GoodImage(models.Model):
     image = models.ForeignKey(Image,on_delete=models.CASCADE)
-    good = models.ForeignKey(Good,on_delete=models.CASCADE)
+    good = models.ForeignKey(Good,on_delete=models.CASCADE,related_name="GoodImages")
     order = models.IntegerField(default=1)
+
+    class Meta:
+        ordering = ('order',)

@@ -17,9 +17,13 @@ class CategoryType(graphene.ObjectType):
     name = graphene.String()
     parent = graphene.Field(lambda: CategoryType)
     goods = graphene.List(good_schema.GoodType)
+    subcategories = graphene.List(lambda: CategoryType)
 
     def resolve__id(self,info):
-        return self._id
+        if isinstance(self, Category):
+            return self._id
+        else:
+            return self
 
     def resolve_goods(self,info):
         try:
@@ -33,12 +37,18 @@ class CategoryType(graphene.ObjectType):
         return self.parent
 
 
+    def resolve_subcategories(self,info):
+        query_set = []
+        query_set = Category.objects.filter(parent = self._id)
+        return query_set
+
 
 class CategoryInput(graphene.InputObjectType):
     _id = graphene.String(name='_id')
     name = graphene.String()
     parent = graphene.Field(lambda:CategoryInput)
     goods = graphene.List(good_schema.GoodInput)
+    subcategories = graphene.List(lambda:CategoryInput)
 
 
 
@@ -48,6 +58,7 @@ class Query(graphene.ObjectType):
 
 
     def resolve_CategoryFind(self,info,query = "[{}]"):
+
         additional_params = {}
         query_list = json.loads(query)
         filter_params = query_list[0]
@@ -61,9 +72,9 @@ class Query(graphene.ObjectType):
         query_set = Category.objects.all()
 
         if len(filter_params):
-            query_set = query_set.filter(reduce(operator.and_,(Q(**d) for d in [dict([i]) for i in filter_params.items()])))
+            query_set = query_set.filter(reduce(operator.or_,(Q(**d) for d in [dict([i]) for i in filter_params.items()])))
 
-
+        query_set = query_set.order_by(order_by)[skip:skip+limit]
         return query_set
 
 
@@ -99,6 +110,7 @@ class CategoryUpsert(graphene.Mutation):
     def mutate(root,info,category ={}):
         new_category={}
         good_list = []
+        subcategories_list = []
 
         user = info.context.user
         if not user.is_superuser:
@@ -109,6 +121,9 @@ class CategoryUpsert(graphene.Mutation):
             good_list = [f['_id'] for f in category["goods"]]
             category.pop("goods",None)
 
+        if "subcategories" in category:
+            subcategories_list = [Category.objects.get(_id = f["_id"]) for f in category["subcategories"]]
+            category.pop("subcategories",None)
 
         try:
             _id = category._id
@@ -121,6 +136,10 @@ class CategoryUpsert(graphene.Mutation):
         new_category.save()
         if len(good_list):
             new_category.goods.set(good_list)
+
+        if len(subcategories_list):
+            new_category.subcategories.set(subcategories_list)
+
         category_data = model_to_dict(new_category)
         category_data["_id"] = new_category._id
         return CategoryType(**category_data)
@@ -147,7 +166,7 @@ class CategoryDelete(graphene.Mutation):
             _id = category._id
             category_to_delete = Category.objects.get(_id=_id)
             category_data = model_to_dict(category_to_delete)
-            category_data["_id"] = new_category._id
+            category_data["_id"] = category_to_delete._id
             category_to_delete.delete()
 
         except:
