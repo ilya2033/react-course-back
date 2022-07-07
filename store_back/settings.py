@@ -36,6 +36,8 @@ else:
     from .prod import *
 
 
+ALLOWED_HOSTS=["*"]
+
 # Application definition
 CORS_ALLOWED_ORIGINS = [
     "http://188.72.209.29",
