@@ -16,7 +16,7 @@ urlpatterns = [
     path('api/upload/',image_upsert),
     path('api/auth/',include('authAPI.urls')),
     path('api/admin/', admin.site.urls),
-    path('/api/graphql/',csrf_exempt(GraphQLView.as_view(
+    path('api/graphql/',csrf_exempt(GraphQLView.as_view(
         graphiql=True,
         schema = schema
     )))
