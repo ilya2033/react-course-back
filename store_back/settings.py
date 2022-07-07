@@ -158,7 +158,7 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 STATIC_URL = '/static/'
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media').replace('\\', '/')
-MEDIA_URL = 'api/media/'
+MEDIA_URL = '/api/media/'
 
 
 # Default primary key field type
