@@ -49,6 +49,7 @@ CORS_ALLOW_METHODS = [
     "GET",
     "POST",
     "PUT",
+    "OPTIONS"
 ]
 INSTALLED_APPS = [
     'django.contrib.admin',
