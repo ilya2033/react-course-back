@@ -13,10 +13,10 @@ urlpatterns = [
     path('api/', include('goods.urls')),
     path('api/', include('orders.urls')),
     path('api/', include('categories.urls')),
-    path('upload/',image_upsert),
+    path('api/upload/',image_upsert),
     path('api/auth/',include('authAPI.urls')),
     path('api/admin/', admin.site.urls),
-    path('graphql/',csrf_exempt(GraphQLView.as_view(
+    path('api/graphql/',csrf_exempt(GraphQLView.as_view(
         graphiql=True,
         schema = schema
     )))
