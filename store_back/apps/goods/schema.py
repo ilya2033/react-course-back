@@ -7,7 +7,7 @@ from functools import reduce
 from .serializers import GoodSerializer
 from django.forms.models import model_to_dict
 from django.db.models import Count
-from django.contrib.settings import MEDIA_URL
+from django.conf.setting import MEDIA_URL
 
 import operator
 from django.db.models import Q
