@@ -1,4 +1,4 @@
-wsgi_app = "diploma.wsgi:application"
+wsgi_app = "store_back.wsgi:application"
 loglevel = "debug"
 workers = 1
 bind = "0.0.0.0:8000"
