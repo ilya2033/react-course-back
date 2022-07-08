@@ -22,6 +22,7 @@ class ImageType(graphene.ObjectType):
         return self._id
 
     def resolve_url(self,info):
+        print(MEDIA_URL + self.url)
         return MEDIA_URL + self.url
 
 
