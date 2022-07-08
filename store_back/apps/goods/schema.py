@@ -7,7 +7,7 @@ from functools import reduce
 from .serializers import GoodSerializer
 from django.forms.models import model_to_dict
 from django.db.models import Count
-from django.conf.setting import MEDIA_URL
+from django.conf import settings
 
 import operator
 from django.db.models import Q
@@ -22,8 +22,8 @@ class ImageType(graphene.ObjectType):
         return self._id
 
     def resolve_url(self,info):
-        print(MEDIA_URL + self.url)
-        return MEDIA_URL + self.url
+        print(settings.MEDIA_URL + self.url)
+        return settings.MEDIA_URL + self.url
 
 
 class ImageInput(graphene.InputObjectType):
