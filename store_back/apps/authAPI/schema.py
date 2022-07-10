@@ -148,13 +148,13 @@ class UserUpsert(graphene.Mutation):
         try:
             _id = user._id
             new_user = User.objects.get(_id = _id)
-            if not user.is_superuser:
+            if not info.context.user.is_superuser:
                 raise Exception("Authentication credentials were not provided")
             user.pop("_id",None)
             new_user.__dict__.update(**user)
         except Exception as e:
 
-            if user.is_authenticated:
+            if info.context.user.is_authenticated:
                 try:
                     new_user = User.objects.get(_id = info.context.user._id)
                     new_user.__dict__.update(**user)
@@ -166,7 +166,7 @@ class UserUpsert(graphene.Mutation):
                     raise Exception("Username вже зайнятий")
                 except:
                     pass
-                    
+
                 new_user = User.objects.create_user(username = user.username,password=user.password)
 
         if ava:
