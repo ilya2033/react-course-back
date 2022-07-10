@@ -173,15 +173,15 @@ class UserUpsert(graphene.Mutation):
         if ava:
             if ava == "null":
                 print(1)
-
                 new_user.avatar = None
-
 
             else:
                 print(2)
                 new_user.avatar = ava
 
         new_user.save()
+
+        print(new_user)
 
         user_data =  {key: new_user.__dict__[key] for key in  new_user.__dict__.keys() & {"username","_id","name","avatar","nick"}}
         user_data["_id"] = new_user._id
