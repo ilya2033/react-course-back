@@ -144,6 +144,7 @@ class UserUpsert(graphene.Mutation):
                     ava = Image.objects.get(_id = user.pop("avatar")["_id"])
                 except:
                     raise Exception("Не вірні дані (аватар)")
+        print(ava)
 
         try:
             _id = user._id
@@ -171,9 +172,14 @@ class UserUpsert(graphene.Mutation):
 
         if ava:
             if ava == "null":
+                print(1)
+
                 new_user.avatar = None
+
+
             else:
-                 new_user.avatar = ava
+                print(2)
+                new_user.avatar = ava
 
         new_user.save()
 
