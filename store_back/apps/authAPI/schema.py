@@ -33,6 +33,7 @@ class UserType(graphene.ObjectType):
         return self._id
 
     def resolve_avatar(self,info):
+        print(self)
         return self.avatar
 
     def resolve_nick(self,info):
@@ -116,7 +117,7 @@ class Query(graphene.ObjectType):
 
         if len(filter_params):
             query_set = query_set.filter(reduce(operator.and_,(Q(**d) for d in [dict([i]) for i in filter_params.items()])))
-
+        print(query_set.first().__dict__)
         return query_set.first()
 
 
@@ -181,7 +182,6 @@ class UserUpsert(graphene.Mutation):
 
         new_user.save()
 
-        print(new_user)
 
         user_data =  {key: new_user.__dict__[key] for key in  new_user.__dict__.keys() & {"username","_id","name","avatar","nick"}}
         user_data["_id"] = new_user._id
