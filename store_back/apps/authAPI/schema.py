@@ -137,8 +137,8 @@ class UserUpsert(graphene.Mutation):
         ava = None
 
         if "avatar" in user:
-            if not user.get("avatar"):
-                ava = None
+            if user.get("avatar") == "null":
+                ava = user.pop("avatar")
             else:
                 try:
                     ava = Image.objects.get(_id = user.pop("avatar")["_id"])
@@ -159,7 +159,10 @@ class UserUpsert(graphene.Mutation):
             new_user = User.objects.create_user(username = user.username,password=user.password)
 
         if ava:
-            new_user.avatar = ava
+            if ava == "null":
+                new_user.avatar = None
+            else:
+                 new_user.avatar = ava
 
         new_user.save()
 
