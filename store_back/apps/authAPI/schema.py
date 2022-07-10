@@ -6,6 +6,7 @@ import json
 from functools import reduce
 from django.forms.models import model_to_dict
 from django.contrib.auth import get_user_model
+from goods.models import Image
 
 import operator
 from django.db.models import Q
@@ -77,8 +78,7 @@ class Query(graphene.ObjectType):
     UserFind = graphene.List(UserType,query = graphene.String())
     UserFindOne = graphene.Field(UserType,query = graphene.String())
 
-    # ImageFind = graphene.List(ImageType,query = graphene.String())
-    # ImageFindOne = graphene.Field(ImageType,query = graphene.String())
+
 
     def resolve_UserFind(self,info,query = "[{}]"):
         additional_params = {}
@@ -134,6 +134,16 @@ class UserUpsert(graphene.Mutation):
     @staticmethod
     def mutate(root,info,user):
         new_user={}
+        ava = None
+
+        if "avatar" in user:
+            if not user.get("avatar"):
+                ava = None
+            else:
+                try:
+                    ava = Image.objects.get(_id = user.pop("avatar")["_id"])
+                except:
+                    raise Exception("Не вірні дані (аватар)")
 
         try:
             _id = user._id
@@ -147,6 +157,9 @@ class UserUpsert(graphene.Mutation):
             except:
                 pass
             new_user = User.objects.create_user(username = user.username,password=user.password)
+
+        if ava:
+            new_user.avatar = ava
 
         new_user.save()
 
