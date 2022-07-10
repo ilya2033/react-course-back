@@ -33,7 +33,6 @@ class UserType(graphene.ObjectType):
         return self._id
 
     def resolve_avatar(self,info):
-        print(self)
         return self.avatar
 
     def resolve_nick(self,info):
@@ -103,6 +102,7 @@ class Query(graphene.ObjectType):
 
 
     def resolve_UserFindOne(self,info,query = "[{}]"):
+        user = info.context.user
         additional_params = {}
         query_list = json.loads(query)
         filter_params = query_list[0]
@@ -113,11 +113,15 @@ class Query(graphene.ObjectType):
         limit = additional_params.get("limit",20)
         order_by = additional_params.get("orderBy","_id")
 
-        query_set = User.objects.all()
+        if user.is_superuser:
+            query_set = User.objects.all()
+        else:
+            query_set = User.objects.filter(pk=user._id)
+
+
 
         if len(filter_params):
             query_set = query_set.filter(reduce(operator.and_,(Q(**d) for d in [dict([i]) for i in filter_params.items()])))
-        print(query_set.first().__dict__)
         return query_set.first()
 
 
@@ -145,20 +149,20 @@ class UserUpsert(graphene.Mutation):
                     ava = Image.objects.get(_id = user.pop("avatar")["_id"])
                 except:
                     raise Exception("Не вірні дані (аватар)")
-        print(ava)
 
         try:
             _id = user._id
             new_user = User.objects.get(_id = _id)
             if not info.context.user.is_superuser:
                 raise Exception("Authentication credentials were not provided")
+
             user.pop("_id",None)
             new_user.__dict__.update(**user)
         except Exception as e:
 
             if info.context.user.is_authenticated:
                 try:
-                    new_user = User.objects.get(_id = info.context.user._id)
+                    new_user = User.objects.get(username = info.context.user.username)
                     new_user.__dict__.update(**user)
                 except:
                     raise Exception("Не вірні дані")
@@ -173,14 +177,14 @@ class UserUpsert(graphene.Mutation):
 
         if ava:
             if ava == "null":
-                print(1)
                 new_user.avatar = None
 
             else:
-                print(2)
                 new_user.avatar = ava
 
         new_user.save()
+
+
 
 
         user_data =  {key: new_user.__dict__[key] for key in  new_user.__dict__.keys() & {"username","_id","name","avatar","nick"}}
