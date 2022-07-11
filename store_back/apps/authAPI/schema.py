@@ -47,7 +47,8 @@ class UserType(graphene.ObjectType):
 
 
     def resolve_is_active(self,info):
-        return self.is_active
+        user = User.objects.get(_id = self._id)
+        return user.is_active
 
 
     def resolve_acl(self,info):
