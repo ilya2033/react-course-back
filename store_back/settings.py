@@ -3,7 +3,7 @@
 import os,sys
 from datetime import timedelta
 import django
-
+import dj_database_url
 from django.utils.encoding import force_str
 django.utils.encoding.force_text = force_str
 
@@ -147,7 +147,8 @@ DATABASES = {
     }
 }
 
-
+DATABASE_URL = "postgres://qvkowaptdjfexz:3ef6f3a16c918da406cd2b388042a45080ff7f9dd10d5f9cc1df0ec0eca8ab7a@ec2-52-48-159-67.eu-west-1.compute.amazonaws.com:5432/dfi11snf6cpamj"
+DATABASES['default'] = dj_database_url.config(conn_max_age=600, ssl_require=True)
 
 
 
