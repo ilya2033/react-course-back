@@ -185,6 +185,8 @@ class UserUpsert(graphene.Mutation):
                 try:
                     new_user = User.objects.get(username = info.context.user.username)
                     new_user.__dict__.update(**user)
+                    if password:
+                        new_user.set_password(password)
                 except:
                     raise Exception("Не вірні дані")
             else:
