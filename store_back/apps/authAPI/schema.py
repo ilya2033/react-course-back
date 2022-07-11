@@ -178,8 +178,7 @@ class UserUpsert(graphene.Mutation):
 
             if password:
                 new_user.set_password(password)
-                print(new_user)
-                print(new_user.password)
+    
 
         except Exception as e:
 
