@@ -24,6 +24,7 @@ class UserType(graphene.ObjectType):
     nick = graphene.String()
     username = graphene.String()
     acl = graphene.List(graphene.String)
+    is_active = graphene.Boolean()
     createdAt = graphene.String()
 
 
@@ -43,6 +44,11 @@ class UserType(graphene.ObjectType):
 
     def resolve_username(self,info):
         return self.username
+
+
+    def resolve_is_active(self,info):
+        return self.is_active
+
 
     def resolve_acl(self,info):
         user = User.objects.get(_id = self._id)
