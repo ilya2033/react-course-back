@@ -212,7 +212,7 @@ class UserUpsert(graphene.Mutation):
                 raise Exception("Authentication credentials were not provided")
             
             new_user.is_active = "active" in acl
-            new_user.is_admin = "admin" in acl
+            new_user.is_superuser = "admin" in acl
 
         new_user.save()
 
