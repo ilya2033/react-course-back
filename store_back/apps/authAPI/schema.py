@@ -54,7 +54,8 @@ class UserType(graphene.ObjectType):
         user = User.objects.get(_id = self._id)
         acl = ["anon"]
         if user._id:
-            acl.append("user")
+            if user.is_active:
+                acl.append("active")
             if  user.is_superuser:
                 acl.append("admin")
 
@@ -145,6 +146,11 @@ class UserUpsert(graphene.Mutation):
     def mutate(root,info,user):
         new_user={}
         ava = None
+        acl = []
+
+        if "acl" in user:
+            acl = user.get("acl", [])
+            user.pop("acl")
 
         if "avatar" in user:
             if user.get("avatar") == "null":
@@ -186,6 +192,14 @@ class UserUpsert(graphene.Mutation):
 
             else:
                 new_user.avatar = ava
+
+
+        if len(acl):
+            if not info.context.user.is_superuser:
+                raise Exception("Authentication credentials were not provided")
+            
+            new_user.is_active = "active" in "acl"
+            new_user.is_admin = "admin" in "acl"
 
         new_user.save()
 

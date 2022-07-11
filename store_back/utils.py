@@ -26,7 +26,9 @@ def jwt_payload(user, context=None):
 
     if user._id:
         payload["sub"]["acl"].append(str(user._id))
-        payload["sub"]["acl"].append("user")
+        if user.is_active:
+            payload["sub"]["acl"].append("active")
+
         if  user.is_superuser:
             payload["sub"]["acl"].append("admin")
         payload["sub"]["login"] = user.username
