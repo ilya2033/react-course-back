@@ -54,7 +54,6 @@ class UserType(graphene.ObjectType):
         user = User.objects.get(_id = self._id)
         acl = ["anon"]
         if user._id:
-            acl.append(str(user._id))
             acl.append("user")
             if  user.is_superuser:
                 acl.append("admin")
