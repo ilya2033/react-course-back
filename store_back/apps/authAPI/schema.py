@@ -149,7 +149,7 @@ class UserUpsert(graphene.Mutation):
         ava = None
         acl = []
 
-        if "password" in user and len(user["password"] < 3):
+        if "password" in user and len(user["password"]) < 3:
             raise Exception("Не вірні дані (пароль)")
         elif "password" in user:
             password = str(user.pop("password"))
