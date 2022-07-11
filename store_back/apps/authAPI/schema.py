@@ -145,8 +145,14 @@ class UserUpsert(graphene.Mutation):
     @staticmethod
     def mutate(root,info,user):
         new_user={}
+        password = None
         ava = None
         acl = []
+
+        if "password" in user and len(user["password"] < 3):
+            raise Exception("Не вірні дані (пароль)")
+        elif "password" in user:
+            password = str(user.pop("password"))
 
         if "acl" in user:
             acl = user.get("acl", [])
@@ -169,6 +175,10 @@ class UserUpsert(graphene.Mutation):
 
             user.pop("_id",None)
             new_user.__dict__.update(**user)
+
+            if password:
+                new_user.set_password(password)
+
         except Exception as e:
 
             if info.context.user.is_authenticated:
