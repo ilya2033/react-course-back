@@ -140,10 +140,10 @@ class CategoryUpsert(graphene.Mutation):
                 print(category.get("parent",None) == "null")
                 print(category.get("parent",None))
 
-                if category.get("parent",None) == "null":
+                if not category.get("parent")["_id"] == "null":
                     new_category.parent = None
-                    
-                new_category.parent = Category.objects.get(_id=category.get("parent",None)["_id"])
+                else: 
+                    new_category.parent = Category.objects.get(_id=category.get("parent")["_id"])
             except:
                 raise Exception("Невірні дані (parent)")
 
