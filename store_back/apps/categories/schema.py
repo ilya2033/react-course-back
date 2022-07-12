@@ -132,6 +132,13 @@ class CategoryUpsert(graphene.Mutation):
         except Exception as e:
 
             new_category = Category(**category)
+            
+        
+        if "parent" in category:
+            try:
+                new_category.parent = Category.objects.get(_id=category.get("parent",None)["_id"])
+            except:
+                raise Exception("Невірні дані (parent)")
 
         new_category.save()
         if len(good_list):
