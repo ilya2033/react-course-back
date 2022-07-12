@@ -136,6 +136,8 @@ class CategoryUpsert(graphene.Mutation):
         
         if "parent" in category:
             try:
+                if not category.get("parent",None):
+                    new_category.parent = None
                 new_category.parent = Category.objects.get(_id=category.get("parent",None)["_id"])
             except:
                 raise Exception("Невірні дані (parent)")
