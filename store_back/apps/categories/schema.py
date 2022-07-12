@@ -154,6 +154,8 @@ class CategoryUpsert(graphene.Mutation):
         if len(subcategories_list):
             new_category.subcategories.set(subcategories_list)
 
+        new_category.save()
+
         category_data = model_to_dict(new_category)
         category_data["_id"] = new_category._id
         return CategoryType(**category_data)
