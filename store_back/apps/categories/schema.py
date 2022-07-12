@@ -136,6 +136,10 @@ class CategoryUpsert(graphene.Mutation):
         
         if "parent" in category:
             try:
+                print(category)
+                print(category.get("parent",None) == "null")
+                print(category.get("parent",None))
+
                 if category.get("parent",None) == "null":
                     new_category.parent = None
                     
