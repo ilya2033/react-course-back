@@ -129,7 +129,6 @@ def image_upsert(request):
             image = Image.objects.create(url =file )
             image.save()
             serializer = ImageSerializer(image)
-            print(serializer.data)
             return JsonResponse({"data":serializer.data}, safe=False)
         else:
             return JsonResponse({"data":{}}, safe=False)

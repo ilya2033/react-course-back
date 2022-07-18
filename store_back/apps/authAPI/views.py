@@ -20,7 +20,6 @@ def register(request):
 
             return JsonResponse({"data":{"_id":newUser._id}}, safe=False)
         else:
-            print(form.errors)
             return JsonResponse({"errors":[{"message":"Невірні дані"}]}, safe=False)
 
     return JsonResponse({"errors":[{"message":"Invalid method, method must be POST"}]}, safe=False)

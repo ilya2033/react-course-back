@@ -108,9 +108,10 @@ class CategoryUpsert(graphene.Mutation):
 
     @staticmethod
     def mutate(root,info,category ={}):
-        new_category={}
+        new_category=None
         good_list = []
         subcategories_list = []
+        _id = category.get("_id",None)
 
         user = info.context.user
         if not user.is_superuser:
@@ -126,26 +127,34 @@ class CategoryUpsert(graphene.Mutation):
             category.pop("subcategories",None)
 
         try:
-            _id = category._id
-            new_category = Category.objects.get(_id = _id)
-            new_category.__dict__.update(**category)
-        except Exception as e:
+            if _id:
+                new_category = Category.objects.get(_id = _id)
+            else:
+                new_category = Category()
+        except:
+            raise Exception("Невірні дані")
 
-            new_category = Category(**category)
-            
-        
+
         if "parent" in category:
             try:
-                print(category)
-                print(category.get("parent",None) == "null")
-                print(category.get("parent",None))
-
-                if not category.get("parent")["_id"] == "null":
+                if not category.get("parent"):
                     new_category.parent = None
-                else: 
+                else:
                     new_category.parent = Category.objects.get(_id=category.get("parent")["_id"])
-            except:
+            except Exception as e:
                 raise Exception("Невірні дані (parent)")
+            category.pop("parent",None)
+
+
+
+        try:
+            new_category.__dict__.update(**category)
+        except Exception as e:
+            raise Exception("Невірні дані")
+            
+            
+        
+
 
         new_category.save()
         if len(good_list):

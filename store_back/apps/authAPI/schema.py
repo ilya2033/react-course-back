@@ -103,6 +103,7 @@ class Query(graphene.ObjectType):
         if len(filter_params):
             query_set = query_set.filter(reduce(operator.or_,(Q(**d) for d in [dict([i]) for i in filter_params.items()])))
 
+        print(query_set)
         query_set = query_set.order_by(order_by)[skip:skip+limit]
         return query_set
 
@@ -228,34 +229,6 @@ class UserUpsert(graphene.Mutation):
 
 
 
-# class GoodDelete(graphene.Mutation):
-
-#     class Arguments:
-#         good = GoodInput(required=True)
-
-#     Output =GoodType
-
-#     @staticmethod
-#     def mutate(root,info,good):
-#         user = info.context.user
-#         if not user.is_superuser:
-#             raise Exception("Authentication credentials were not provided")
-
-
-#         try:
-#             _id = good._id
-#             good_to_delete = Good.objects.get(_id=_id)
-#             good_data = model_to_dict(good_to_delete)
-#             good_data["_id"] = new_good._id
-#             good_to_delete.delete()
-#         except:
-#             raise Exception("Не вірні дані")
-
-
-
-#         return GoodType(**good_data)
-
-
 
 
 
@@ -268,7 +241,6 @@ class Mutations(graphene.ObjectType):
 
 
     UserUpsert =  UserUpsert.Field()
-    # GoodDelete = GoodDelete.Field()
 
 
 
