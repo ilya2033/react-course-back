@@ -124,11 +124,11 @@ def good_upsert(request):
 
 @csrf_exempt
 def image_upsert(request):
-        file = request.FILES.get("photo" , None)
-        if file:
-            image = Image.objects.create(url =file )
-            image.save()
-            serializer = ImageSerializer(image)
-            return JsonResponse({"data":serializer.data}, safe=False)
-        else:
-            return JsonResponse({"data":{}}, safe=False)
+    file = request.FILES.get("photo" , None)
+    if file:
+        image = Image.objects.create(url =file )
+        image.save()
+        serializer = ImageSerializer(image)
+        return JsonResponse({"data":serializer.data}, safe=False)
+    else:
+        return JsonResponse({"data":{}}, safe=False)
