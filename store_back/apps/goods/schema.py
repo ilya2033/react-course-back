@@ -104,7 +104,7 @@ class Query(graphene.ObjectType):
             query_set = query_set.filter(reduce(operator.or_,(Q(**d) for d in [dict([i]) for i in filter_params.items()])))
 
         if order_by == 'popular':
-            query_set = query_set.annotate(order_count=Count('orderGoods')).order_by("order_count")[skip:skip+limit]
+            query_set = query_set.annotate(order_count=Count('orderGoods')).order_by("-order_count")[skip:skip+limit]
         else:
             query_set = query_set.order_by(order_by)[skip:skip+limit]
 
