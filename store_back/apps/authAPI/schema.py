@@ -17,16 +17,6 @@ import graphql_jwt
 User = get_user_model()
 
 
-class ObtainJSONWebToken(graphql_jwt.ObtainJSONWebToken):
-
-    @classmethod
-    def mutate(cls, *args, **kwargs):
-        try:
-            return super().mutate()
-        except JSONWebTokenError:
-            raise Exception('Invalid credentials ')
-
-
 class UserType(graphene.ObjectType):
     _id = graphene.String(name='_id')
     avatar = graphene.Field(ImageType)
@@ -244,7 +234,7 @@ class UserUpsert(graphene.Mutation):
 
 
 class Mutations(graphene.ObjectType):
-    token_auth = ObtainJSONWebToken.Field()
+    token_auth = graphql_jwt.ObtainJSONWebToken.Field()
     verify_token = graphql_jwt.Verify.Field()
     refresh_token = graphql_jwt.Refresh.Field()
 
