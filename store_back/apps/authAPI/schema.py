@@ -101,8 +101,14 @@ class Query(graphene.ObjectType):
 
 
         if len(filter_params):
-            query_set = query_set.filter(reduce(operator.or_,(Q(**d) for d in [dict([i]) for i in filter_params.items()])))
-
+            or_filter_params = filter_params.pop("or",{})
+            and_filter_params= filter_params.pop("and",{})
+            and_filter_params |= filter_params
+            if len(or_filter_params):
+                query_set = query_set.filter(reduce(operator.or_,(Q(**d) for d in [dict([i]) for i in or_filter_params.items()])))
+            if len(and_filter_params):
+                query_set = query_set.filter(reduce(operator.and_,(Q(**d) for d in [dict([i]) for i in and_filter_params.items()])))
+                
         query_set = query_set.order_by(order_by)[skip:skip+limit]
         return query_set
 
@@ -127,7 +133,14 @@ class Query(graphene.ObjectType):
 
 
         if len(filter_params):
-            query_set = query_set.filter(reduce(operator.and_,(Q(**d) for d in [dict([i]) for i in filter_params.items()])))
+            or_filter_params = filter_params.pop("or",{})
+            and_filter_params= filter_params.pop("and",{})
+            and_filter_params |= filter_params
+            if len(or_filter_params):
+                query_set = query_set.filter(reduce(operator.or_,(Q(**d) for d in [dict([i]) for i in or_filter_params.items()])))
+            if len(and_filter_params):
+                query_set = query_set.filter(reduce(operator.and_,(Q(**d) for d in [dict([i]) for i in and_filter_params.items()])))
+                
         return query_set.first()
 
 
