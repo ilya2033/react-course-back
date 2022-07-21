@@ -167,37 +167,34 @@ class UserUpsert(graphene.Mutation):
                 except:
                     raise Exception("Не вірні дані (аватар)")
 
-        try:
-            _id = user._id
-            new_user = User.objects.get(_id = _id)
-            if not info.context.user.is_superuser:
+        if "_id" in user:
+            if not info.context.user.is_authenticated:
                 raise Exception("Authentication credentials were not provided")
 
-            user.pop("_id",None)
-            new_user.__dict__.update(**user)
 
-            if password:
-                new_user.set_password(password)
+            if str(info.context.user._id) != user._id and not info.context.user.is_superuser:
+                raise Exception("Authentication credentials were not provided")
+
+            
+            try:
+                _id = user._id
+                new_user = User.objects.get(_id = _id)
+                user.pop("_id",None)
+
+                new_user.__dict__.update(**user)
+
+                if password:
+                    new_user.set_password(password)
+            except:
+                raise Exception("Не вірні дані")
+                
     
-
-        except Exception as e:
-
-            if info.context.user.is_authenticated:
-                try:
-                    new_user = User.objects.get(username = info.context.user.username)
-                    new_user.__dict__.update(**user)
-                    if password:
-                        new_user.set_password(password)
-                except:
-                    raise Exception("Не вірні дані")
-            else:
-                try:
-                    User.objects.get(username = user.username)
-                    raise Exception("Username вже зайнятий")
-                except:
-                    pass
-
+        else:
+            if info.context.user.is_authenticated and not info.context.user.is_superuser:
+                new_user = User.objects.get(username = info.context.user.username )
+            else:                      
                 new_user = User.objects.create_user(username = user.username,password=user.password)
+            
 
         if ava:
             if ava == "null":
